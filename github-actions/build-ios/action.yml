@@ -1,0 +1,52 @@
+name: "Build iOS"
+author: "Odevio"
+description: "Build a flutter application for iOS and optionnally publish it to AppStoreConnect. The input parameters can also be specified in a .odevio file in the repo."
+branding:
+  icon: "command"
+  color: "purple"
+inputs:
+  api-key:
+    description: "The Odevio API key to make requests. You should use a secret for it"
+    required: true
+  app-key:
+    description: "The Odevio app key"
+    required: true
+  build-type:
+    description: "The build type. Can be 'ad-hoc', 'validation' or 'publication'."
+    required: false
+    default: "publication"
+  directory:
+    description: "The directory of the flutter project. Defaults to the root directory of the repo."
+    required: false
+  flutter:
+    description: "The flutter version to use. Defaults to the latest version."
+    required: false
+  minimal-ios-version:
+    description: "Minimal iOS version for your application. If not provided, the one defined in the XCode configuration files is used."
+    required: false
+  app-version:
+    description: "The app version to set for this build. If not provided, the one in pubspec.yaml is used."
+    required: false
+  build-number:
+    description: "The build number to use for the build. If not provided, the one in pubspec.yaml is used."
+    required: false
+  mode:
+    description: "Mode to build the app in (release, profile or debug)."
+    required: false
+    default: "release"
+  target:
+    description: "The main entry-point file of the application."
+    required: false
+    default: "lib/main.dart"
+  flavor:
+    description: "Custom app flavor."
+    required: false
+  post-build-command:
+    description: "Command to run after the build is finished, to send debug files to sentry for example."
+    required: false
+outputs:
+  ipa:
+    description: "Link to install the generated IPA file. Only for 'ad-hoc' builds."
+runs:
+  using: "node21"
+  main: "index.js"

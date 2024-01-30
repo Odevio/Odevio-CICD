@@ -1,0 +1,84 @@
+# Build a Flutter application for iOS and optionnally publish it to AppStoreConnect
+
+This action builds an application made with Flutter for iOS using Odevio.
+
+If the build type is publication is also publishes it to AppStoreConnect.
+
+## Secrets
+### `api-key`
+An API key of an Odevio user with access to the application to build.
+
+## Inputs
+
+### `api-key`
+**Required** An Odevio API key linked to a user that has access to the app to build.
+
+### `app-key`
+**Required** The Odevio key of the application you want to publish.
+
+### `build-type`
+The build type to run.
+- `ad-hoc`: build the application and get an IPA file to install on your device
+- `validation`: build the application, sign it and verify that everything is ready to send to AppStoreConnect, but do not send it
+- `publication`: build the application, sign it and send it to AppStoreConnect to make a new public or TestFlight release
+
+## Outputs
+
+### `ipa`
+A link to download and install the built API file, for ad-hoc builds.
+
+## Example usage
+
+### Publish to AppStoreConnect
+```yaml
+name: publish-ios-app
+run-name: Publishing application to App Store Connect
+on:
+  push:
+    branches:
+      - master # Set the name of the branch where the code to release is pushed
+jobs:
+  # Add your test steps if needed
+  #test:
+  # You could also add your play store publish job here
+  #publish-android:
+  publish-ios:
+    # Uncomment if you use the 'test' job
+    #needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Odevio/Odevio-CICD/github-actions/build-ios@v1
+        with:
+          api-key: ${{ secrets.ODEVIO_API_KEY }}
+          app-key: 'AAA'
+          build-type: publication
+```
+
+### Build for testing
+```yaml
+name: build-ipa
+run-name: Building IPA app
+on:
+  push:
+    branches:
+      - dev # Set the name of the branch where the code to test is pushed
+jobs:
+  # Add your test steps if needed
+  #test:
+  # You could also add your APK build job here
+  #build-android:
+  build-ios:
+    # Uncomment if you use the 'test' job
+    #needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Odevio/Odevio-CICD/github-actions/build-ios@v1
+        id: build
+        with:
+          api-key: ${{ secrets.ODEVIO_API_KEY }}
+          app-key: 'AAA'
+          build-type: ad-hoc
+      # add step using ${{ steps.build.outputs.ipa }} if you need
+```

@@ -48,5 +48,5 @@ outputs:
   ipa:
     description: "Link to install the generated IPA file. Only for 'ad-hoc' builds."
 runs:
-  using: "node21"
+  using: "node20"
   main: "index.js"

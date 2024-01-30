@@ -10,6 +10,8 @@ An API key of an Odevio user with access to the application to build.
 
 ## Inputs
 
+These values can also be set in a `.odevio` file in the repo to build.
+
 ### `api-key`
 **Required** An Odevio API key linked to a user that has access to the app to build.
 
@@ -17,10 +19,37 @@ An API key of an Odevio user with access to the application to build.
 **Required** The Odevio key of the application you want to publish.
 
 ### `build-type`
-The build type to run.
+The build type to run. Defaults to `publication`.
 - `ad-hoc`: build the application and get an IPA file to install on your device
 - `validation`: build the application, sign it and verify that everything is ready to send to AppStoreConnect, but do not send it
 - `publication`: build the application, sign it and send it to AppStoreConnect to make a new public or TestFlight release
+
+### `directory`
+The directory of the flutter project in the repo. Defaults to the root directory of the repo.
+
+### `flutter`
+The flutter version to use. Defaults to the latest version.
+
+### `minimal-ios-version`
+The minimal iOS version for your application (the deployment target in XCode). If not provided, the one defined in the XCode configuration files is used.
+
+### `app-version`
+The app version to set for this build. If not provided, the one in pubspec.yaml is used.
+
+### `build-number`
+The build number to use for the build. If not provided, the one in pubspec.yaml is used.
+
+### `mode`
+The mode to build the app in (release, profile or debug). Defaults to `release`.
+
+### `target`
+The main entry-point file of the application. Defaults to `lib/main.dart`
+
+### `flavor`
+An optional app flavor.
+
+### `post-build-command`
+Optional commands to run after the build is finished, in the mac VM (to send debug files to sentry for example).
 
 ## Outputs
 

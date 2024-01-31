@@ -1,0 +1,56 @@
+# Odevio example .gitlab-ci.yml file.
+# This file is an example of a possible integration of Odevio in a pipeline of a GitLab repository.
+
+stages:
+  - test
+  - deploy
+
+.flutter_docker_image:
+  image: "ghcr.io/cirruslabs/flutter:3.16.0"
+
+code_quality-job:
+  extends: .flutter_docker_image
+  stage: test
+  before_script:
+    - export PATH="$PATH:$HOME/.pub-cache/bin"
+    - flutter pub global activate dart_code_metrics
+  script:
+    - metrics lib -r codeclimate  > gl-code-quality-report.json
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+
+flutter-test-job:
+  extends: .flutter_docker_image
+  stage: test
+  before_script:
+    - export PATH="$PATH:$HOME/.pub-cache/bin"
+  script:
+    - flutter test --coverage
+    # - lcov --summary coverage/lcov.info
+    - genhtml coverage/lcov.info --output=coverage
+  #coverage: '/lines\.*: \d+\.\d+\%/'
+  artifacts:
+    name: coverage
+    paths:
+      - $CI_PROJECT_DIR/coverage
+    expire_in: 4 days
+
+deploy-odevio-job:
+  stage: deploy
+  image: "ruby:3.1"
+  environment: production
+  before_script:
+    - apt-get update -qy
+    - apt-get -y install zip unzip
+  script:
+    - bash script_cicd.sh $ODEVIO_API_KEY -t ad-hoc
+  artifacts:
+    name: "odevio_ipa_url"
+    paths:
+      - ./odevio_ipa_url.txt
+    expire_in: 30 day
+  only:
+    # Depends on your git
+    - main
+    - master

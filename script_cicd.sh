@@ -311,6 +311,7 @@ function start_build {
 function subscribe_to_sse {
     echo -e "\n*** Subscribe to SSE to listen to changes of the Odevio build ***"
 
+    STATUS_CODE="created"
     echo "Looking for available instance."
 
     # Subscribe to SSE of the build
@@ -329,9 +330,10 @@ function subscribe_to_sse {
         if [[ "$key" == "event" ]]; then
             EVENT="$value"
         elif [[ "$key" == "data" && "$EVENT" ]]; then
+            DATA="$value"
             if [[ "$EVENT" == "status" ]]; then
-                # Remove leading and trailing spaces and the double quotes around the $value
-                STATUS_CODE=$(echo "$value" | tr -d '"' | xargs)
+                # Remove leading and trailing spaces and the double quotes around the $DATA
+                STATUS_CODE=$(echo "$DATA" | tr -d '"' | xargs)
                 case "$STATUS_CODE" in
                     "created") echo "Looking for available instance." ;;
                     "waiting_instance") echo "No instance available at the moment. Waiting for one to be free." ;;
@@ -340,6 +342,20 @@ function subscribe_to_sse {
                     "failed") echo "Failed."; break ;;
                     "stopped") echo "Stopped."; break ;;
                     *) break ;;
+                esac
+            elif [[ "$EVENT" == "substatus" ]]; then
+                if [[ "$STATUS_CODE" == "created" ]]; then
+                    STATUS_CODE="in_progress"
+                    echo "Instance found. Build is in progress."
+                fi
+                
+                SUBSTATUS=$(echo "$DATA" | tr -d '"' | xargs)
+                case "$SUBSTATUS" in
+                    "starting_instance") echo "Starting instance..." ;;
+                    "preparing_build") echo "Preparing build..." ;;
+                    "building") echo "Building..." ;;
+                    "getting_result") echo "Getting result..." ;;
+                    "publishing") echo "Publishing..." ;;
                 esac
             fi
 

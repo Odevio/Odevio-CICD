@@ -267,7 +267,7 @@ function start_build {
 
     # Start the build
     CMD="curl -s -w '\n%{http_code}' \
-                -F 'build_type=ad-hoc' \
+                -F 'build_type=$BUILD_TYPE' \
                 -F 'application=$APP_KEY' \
                 -F 'flutter_version=$FLUTTER_VERSION' \
                 -F 'app_version=$APP_VERSION' \

@@ -272,7 +272,6 @@ function start_build {
                 -F 'flutter_version=$FLUTTER_VERSION' \
                 -F 'app_version=$APP_VERSION' \
                 -F 'build_number=$BUILD_NUMBER' \
-                -F 'origin=cicd' \
                 -F source=@.app.zip"
 
     # Add optional parameters if they are set

@@ -6,7 +6,7 @@
 # "t" and "build-type" have one required argument.
 function echo_help {
   echo "
-$(basename "$0") <odevio_api_key> [-d|--directory <directory/>] [-t|--build-type ad-hoc|publication]
+$(basename "$0") <odevio_api_key> [-d|--directory <directory/>] [-t|--build-type ad-hoc|publication|validation]
 
 USAGE:
     Script used in CI/CD integration with Odevio.
@@ -14,7 +14,7 @@ USAGE:
 OPTIONS:
     -h|--help           Shows this help message.
     -d|--directory      Specifies the directory of the flutter project in the current directory. It has to end with '/'. Default: './'
-    -t|--build-type     Selects the build type used on Odevio. Choices are: 'ad-hoc', 'publication'.
+    -t|--build-type     Selects the build type used on Odevio. Choices are: 'ad-hoc', 'publication', 'validation'.
                         Default: 'publication'
     -k|--app-key           Specifies the app key of the application on Odevio.
     -fv|--flutter-version   Specifies the flutter version used on Odevio.
@@ -56,12 +56,12 @@ while (( "$#" )); do
         ;;
     -t|--build-type)
         case "$2" in
-            "ad-hoc"|"publication")
+            "ad-hoc"|"publication"|"validation")
                 BUILD_TYPE=$2
                 shift 2
                 ;;
             *)
-                echo "Error: Invalid build type. Must be one of: ad-hoc, publication."
+                echo "Error: Invalid build type. Must be one of: ad-hoc, publication, validation."
                 echo_help
                 exit 1
                 ;;

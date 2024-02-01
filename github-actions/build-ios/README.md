@@ -5,7 +5,7 @@ This action builds an application made with Flutter for iOS using Odevio.
 If the build type is publication is also publishes it to AppStoreConnect.
 
 ## Secrets
-### `api-key`
+### `ODEVIO_API_KEY`
 An API key of an Odevio user with access to the application to build.
 
 ## Inputs
@@ -13,7 +13,7 @@ An API key of an Odevio user with access to the application to build.
 These values can also be set in a `.odevio` file in the repo to build.
 
 ### `api-key`
-**Required** An Odevio API key linked to a user that has access to the app to build.
+**Required** An Odevio API key linked to a user that has access to the app to build. This should not be written in plaintext in the workflow file be read from a secret, like in the example below.
 
 ### `app-key`
 **Required** The Odevio key of the application you want to publish.

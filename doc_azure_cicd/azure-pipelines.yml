@@ -9,14 +9,14 @@ pool:
 steps:
   - script: |
       # Launch a build with Odevio
-      wget -O - https://raw.githubusercontent.com/Odevio/Odevio-CICD/master/script_cicd.sh | bash /dev/stdin $(ODEVIO_API_KEY) -t ad-hoc
+      wget -qO- https://raw.githubusercontent.com/Odevio/Odevio-CICD/master/script_cicd.sh | bash /dev/stdin $(ODEVIO_API_KEY) -t ad-hoc
 
       # Copy the odevio_ipa_url.txt to the artifact staging directory if it exists
       if [ -f odevio_ipa_url.txt ]; then
         cp odevio_ipa_url.txt $(Build.ArtifactStagingDirectory)
       fi
 
-    failOnStderr: false
+    failOnStderr: true
     # workingDirectory: "$(System.DefaultWorkingDirectory)/projectFolder/"
     displayName: "deploy-odevio-job"
   - task: PublishBuildArtifacts@1

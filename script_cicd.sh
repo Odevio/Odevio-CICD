@@ -95,6 +95,7 @@ while (( "$#" )); do
 done
 
 WORKING_DIRECTORY="$(pwd)/$FLUTTER_DIRECTORY"
+BASE_URL="https://odevio.com"
 
 # FUNCTIONS
 
@@ -115,8 +116,8 @@ function check_flutter_project {
 function check_token {
     echo -e "\n*** Check token ***"
 
-    STATUS_CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" --header "Authorization: Token $1" "https://odevio.com/api/v1/my-account/")
-    if [ "$STATUS_CODE" -ne 200 ]; then
+    STATUS_CODE_TOKEN=$(curl --silent --output /dev/null --write-out "%{http_code}" --header "Authorization: Token $1" "${BASE_URL}/api/v1/my-account/")
+    if [ "$STATUS_CODE_TOKEN" -ne 200 ]; then
         echo "Error: HTTP status code is not 200"
         echo "The token is not correct"
         exit 1
@@ -283,7 +284,7 @@ function start_build {
     # Add the end of the command
     CMD+=" --header 'Authorization: Token $1' \
           --header 'Platform: cicd' \
-          'https://odevio.com/api/v1/builds/'"
+          '${BASE_URL}/api/v1/builds/'"
 
     # Execute the command and store the response
     RESPONSE=$(eval "$CMD")
@@ -310,9 +311,50 @@ function start_build {
 function subscribe_to_sse {
     echo -e "\n*** Subscribe to SSE to listen to changes of the Odevio build ***"
 
+    echo "Looking for available instance."
+
     # Subscribe to SSE of the build
-    # curl -H "Authorization: Token <api_token>" -H "Accept: text/event-stream" -H "cache-control: no-cache" "https://odevio.com/events/builds/$BUILD_KEY/logs"
-    # curl -H "Authorization: JWT <token>" -H "Accept: text/event-stream" -H "cache-control: no-cache" "https://odevio.com/events/builds/$BUILD_KEY/logs"
+    while IFS= read -r line
+    do
+        # Ignore blank lines and the lines that does not start with "event: " or "data: "
+        if [[ -z "$line" || "$line" != event:* && "$line" != data:* ]]; then
+            continue
+        fi
+
+        # Split the line into key and value
+        IFS=': ' read -r key value <<< "$line"
+
+        # If the key is event, we store the value in a variable $EVENT,
+        # else if the key is data, we do things depending on the previous $EVENT, then we reset $EVENT
+        if [[ "$key" == "event" ]]; then
+            EVENT="$value"
+        elif [[ "$key" == "data" && "$EVENT" ]]; then
+            if [[ "$EVENT" == "status" ]]; then
+                # Remove leading and trailing spaces and the double quotes around the $value
+                STATUS_CODE=$(echo "$value" | tr -d '"' | xargs)
+                case "$STATUS_CODE" in
+                    "created") echo "Looking for available instance." ;;
+                    "waiting_instance") echo "No instance available at the moment. Waiting for one to be free." ;;
+                    "in_progress") echo "Instance found. Build is in progress." ;;
+                    "succeeded") echo "Success."; break ;;
+                    "failed") echo "Failed."; break ;;
+                    "stopped") echo "Stopped."; break ;;
+                    *) break ;;
+                esac
+            fi
+
+            # Reset EVENT
+            EVENT=""
+        fi
+    done < <(curl --no-buffer -s -H "Authorization: Token $1" -H "Accept: text/event-stream" -H "cache-control: no-cache" "${BASE_URL}/events/builds/$BUILD_KEY/logs")
+
+    echo "[DONE]"
+}
+
+# This function requires the variable BUILD_KEY to be set.
+# DEPRECATED
+function subscribe_to_build {
+    echo -e "\n*** Retrieve build every 20s to listen to changes of the Odevio build ***"
 
     PREV_STATUS_CODE="created"
     echo "Looking for available instance."
@@ -326,7 +368,7 @@ function subscribe_to_sse {
         # Fetch current build status
         RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Authorization: Token $1" \
-            "https://odevio.com/api/v1/builds/$BUILD_KEY/")
+            "${BASE_URL}/api/v1/builds/$BUILD_KEY/")
 
         HTTP_STATUS=$(echo "$RESPONSE" | tail -n 1)
         RESPONSE_BODY=$(echo "$RESPONSE" | sed '$ d')
@@ -372,7 +414,7 @@ function handling_finished_build {
     if [[ "$BUILD_TYPE" == "ad-hoc" ]]; then
         RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Authorization: Token $1" \
-            "https://odevio.com/api/v1/builds/$BUILD_KEY/ipa/")
+            "${BASE_URL}/api/v1/builds/$BUILD_KEY/ipa/")
 
         HTTP_STATUS=$(echo "$RESPONSE" | tail -n 1)
         RESPONSE_BODY=$(echo "$RESPONSE" | sed '$ d')

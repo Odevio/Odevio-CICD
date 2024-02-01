@@ -44,7 +44,9 @@ deploy-odevio-job:
     - apt-get update -qy
     - apt-get -y install zip unzip
   script:
-    - wget -qO - https://raw.githubusercontent.com/Odevio/Odevio-CICD/master/script_cicd.sh | bash /dev/stdin $ODEVIO_API_KEY -t ad-hoc
+    - >
+      wget -qO - https://raw.githubusercontent.com/Odevio/Odevio-CICD/master/script_cicd.sh | 
+      bash /dev/stdin $ODEVIO_API_KEY -d ./ -t ad-hoc -k AAAA -fv 3.16.0
   artifacts:
     name: "odevio_ipa_url"
     paths:

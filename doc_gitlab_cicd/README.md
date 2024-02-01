@@ -48,9 +48,9 @@ The basic idea is that the pipeline is decomposed in stages that are run sequent
 
 In the file `.gitlab-ci.yml`, we give an example of what a pipeline that integrates Odevio can look like. The `test` stage is an adaptation of the default flutter CI/CD template of [the official GitLab templates page](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Flutter.gitlab-ci.yml). The flutter template is available [here](https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Flutter.gitlab-ci.yml).
 
-The stage of interest here is the `deploy` stage. This stage is composed of only one job `deploy-odevio-job` that has for objective to run the script `script_cicd.sh`. The image used is `ruby:3.1`. Since this image does not have the command `zip` installed, the part `before_script` install this command on the image before running the script. After that, the script is launched within the section `script`. The `script_cicd.sh` is called with the API key of Odevio that has been set as a CI/CD variable before.
+The stage of interest here is the `deploy` stage. This stage is composed of only one job `deploy-odevio-job` that has for objective to run the script `script_cicd.sh`. The image used is `ruby:3.1`. Since this image does not have the command `zip` installed, the part `before_script` install this command on the image before running the script. After that, the script is launched within the section `script`. The `script_cicd.sh` located at the root of this repository is called with the API key of Odevio that has been set as a CI/CD variable before.
 
-The script can be launched with two optional parameters:
+The script can be launched with more optional parameters:
 - `-d|--directory`      Specifies the directory of the flutter project in the current directory. It has to end with '/'. Default: './'
 - `-t|--build-type`     Selects the build type used on Odevio. Choices are: 'ad-hoc', 'publication'. Default: 'publication'.
 - `-k|--app-key`        Specifies the app key of the application on Odevio.

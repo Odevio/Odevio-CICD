@@ -282,7 +282,9 @@ function start_build {
     [[ -n "$FLAVOR" ]] && CMD+=" -F 'flavor=$FLAVOR'"
 
     # Add the end of the command
-    CMD+=" --header 'Authorization: Token $1' 'https://odevio.com/api/v1/builds/'"
+    CMD+="--header 'Authorization: Token $1' \
+          --header 'Platform: cicd' \
+          'https://odevio.com/api/v1/builds/'"
 
     # Execute the command and store the response
     RESPONSE=$(eval "$CMD")

@@ -9,6 +9,7 @@ pool:
 steps:
   - script: |
       # Launch a build with Odevio
+      # You can replace "master" from the link to the tag of the Odevio-CICD repository that you want to use.
       wget -qO- https://raw.githubusercontent.com/Odevio/Odevio-CICD/master/script_cicd.sh | bash /dev/stdin $(ODEVIO_API_KEY) -t ad-hoc
 
       # Copy the odevio_ipa_url.txt to the artifact staging directory if it exists

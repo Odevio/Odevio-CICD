@@ -128,11 +128,44 @@ function check_token {
     echo "[DONE]"
 }
 
+function read_pubspec_file {
+    echo -e "\n*** Read pubspec.yaml file ***"
+
+    # Open pubspec.yaml file if it exists and read the application version and the build number
+    if [ -f pubspec.yaml ]; then
+        echo "Info: pubspec.yaml file found."
+        # Find the pattern "version: 1.2.3+4" in the content of the file. The numbers can change and are not always 1-digit.
+        # The variable APP_VERSION will be set to the match of "1.2.3" and BUILD_NUMBER to "4"
+        while IFS= read -r line || [[ -n "$line" ]]
+        do
+            if [[ $line =~ ^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+) ]]; then
+                APP_VERSION=${BASH_REMATCH[1]}
+                BUILD_NUMBER=${BASH_REMATCH[2]}
+                break
+            fi
+        done < pubspec.yaml
+    else
+        echo -e "Error: Missing pubspec.yaml file.\nThis file is necessary as it contains the application version and the build number."
+        exit 1
+    fi
+
+    # Check that the variables APP_VERSION and BUILD_NUMBER are set
+    if [[ -z "$APP_VERSION" ]] || [[ -z "$BUILD_NUMBER" ]]; then
+        echo "Error: APP_VERSION and BUILD_NUMBER were not found in the pubspec.yaml file."
+        exit 1
+    fi
+
+    echo "Info: APP_VERSION and BUILD_NUMBER found in the pubspec.yaml file."
+
+    echo "[DONE]"
+}
+
 function read_odevio_file {
+    echo -e "\n*** Read .odevio file ***"
 
     # Open .odevio file if it exists and read the build settings
     if [ -f .odevio ]; then
-        echo -e "\n*** Read .odevio file *** \n\nInfo: Command line arguments override the values present in the file.\n"
+        echo "Info: Command line arguments override the values present in the .odevio file."
         while IFS= read -r line || [[ -n "$line" ]]
         do
             # Ignore lines starting with # or empty lines
@@ -165,7 +198,6 @@ function read_odevio_file {
             esac
         done < .odevio
     else
-        echo -e "\n*** Parsing arguments from the command line ***"
         echo "Info: .odevio file not found"
     fi
 
@@ -174,37 +206,6 @@ function read_odevio_file {
         echo -e "\nError: APP_KEY and FLUTTER_VERSION must be set in the .odevio file or given as arguments."
         exit 1
     fi
-
-    echo "[DONE]"
-}
-
-function read_pubspec_file {
-    echo -e "\n*** Read pubspec.yaml file ***"
-
-    # Open pubspec.yaml file if it exists and read the application version and the build number
-    if [ -f pubspec.yaml ]; then
-        # Find the pattern "version: 1.2.3+4" in the content of the file. The numbers can change and are not always 1-digit.
-        # The variable APP_VERSION will be set to the match of "1.2.3" and BUILD_NUMBER to "4"
-        while IFS= read -r line || [[ -n "$line" ]]
-        do
-            if [[ $line =~ ^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+) ]]; then
-                APP_VERSION=${BASH_REMATCH[1]}
-                BUILD_NUMBER=${BASH_REMATCH[2]}
-                break
-            fi
-        done < pubspec.yaml
-    else
-        echo -e "Error: Missing pubspec.yaml file.\nThis file is necessary as it contains the application version and the build number."
-        exit 1
-    fi
-
-    # Check that the variables APP_VERSION and BUILD_NUMBER are set
-    if [[ -z "$APP_VERSION" ]] || [[ -z "$BUILD_NUMBER" ]]; then
-        echo "Error: APP_VERSION and BUILD_NUMBER were not found in the pubspec.yaml file."
-        exit 1
-    fi
-
-    echo "APP_VERSION and BUILD_NUMBER found in the pubspec.yaml file."
 
     echo "[DONE]"
 }
@@ -456,8 +457,8 @@ function handling_finished_build {
 check_flutter_project $WORKING_DIRECTORY
 cd $WORKING_DIRECTORY
 check_token $TOKEN
-read_odevio_file
 read_pubspec_file
+read_odevio_file
 print_configuration
 start_build $TOKEN
 subscribe_to_sse $TOKEN

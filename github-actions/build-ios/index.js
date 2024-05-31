@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const fs = require('fs')
+const fs = require('fs');
 const archiver = require('archiver');
 const EventSource = require("eventsource");
 
@@ -13,20 +13,42 @@ async function run() {
     let odevioFile = null;
     if (fs.existsSync("./.odevio")) {
       odevioFile = fs.readFileSync("./.odevio", {encoding: "utf8", flag: "r"});
-    }
-    else if (core.getInput("directory") && fs.existsSync(core.getInput("directory")+"/.odevio")) {
+    } else if (core.getInput("directory") && fs.existsSync(core.getInput("directory")+"/.odevio")) {
       odevioFile = fs.readFileSync(core.getInput("directory")+"/.odevio", {encoding: "utf8", flag: "r"});
     }
     if (odevioFile) {
       odevioFile = odevioFile.split("\n").reduce((a, v) => ({...a, [v.split("=")[0]]: v.split("=")[1]}), {});
     }
 
-    // Get parameters from inputs or .odevio file
+    // Read pubspec.yaml file and extract appVersion and buildNumber
+    console.log("\n*** Read pubspec.yaml file ***");
+    const pubspecPath = core.getInput("directory") ? `${core.getInput("directory")}/pubspec.yaml` : "./pubspec.yaml";
+
+    let appVersionPubspec = null;
+    let buildNumberPubspec = null;
+    if (fs.existsSync(pubspecPath)) {
+      const pubspecContent = fs.readFileSync(pubspecPath, {encoding: "utf8", flag: "r"});
+      const versionMatch = pubspecContent.match(/^version:\s*([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)/m);
+
+      if (versionMatch) {
+        appVersionPubspec = versionMatch[1];
+        buildNumberPubspec = versionMatch[2];
+        console.log("APP_VERSION and BUILD_NUMBER found in the pubspec.yaml file.");
+      } else {
+        core.setFailed("APP_VERSION and BUILD_NUMBER were not found in the pubspec.yaml file.");
+        return;
+      }
+    } else {
+      core.setFailed("Missing pubspec.yaml file. This file is necessary as it contains the application version and the build number.");
+      return;
+    }
+
+    // Get parameters from inputs, pubspec.yaml or .odevio file, in this order
     function getParameter(name) {
-      if (core.getInput(name))
-        return core.getInput(name);
-      if (odevioFile && odevioFile[name])
-        return odevioFile[name];
+      if (core.getInput(name)) return core.getInput(name);
+      if (name === "app-version" && appVersionPubspec) return appVersionPubspec;
+      if (name === "build-number" && buildNumberPubspec) return buildNumberPubspec;
+      if (odevioFile && odevioFile[name]) return odevioFile[name];
       return null;
     }
     const appKey = getParameter("app-key");
@@ -46,15 +68,19 @@ async function run() {
       core.setFailed("App key not provided");
       return;
     }
-    if (buildType == "publication")
-      console.log("Publishing app with key "+appKey);
-    else if (buildType == "ad-hoc")
-      console.log("Building IPA of app with key "+appKey);
-    else if (buildType == "validation")
-      console.log("Validating app with key "+appKey);
-    else {
-      core.setFailed("Unsupported build type '"+buildType+"'")
-      return;
+    switch (buildType) {
+      case "publication":
+        console.log("Publishing app with key "+appKey);
+        break;
+      case "ad-hoc":
+        console.log("Building IPA of app with key "+appKey);
+        break;
+      case "validation":
+        console.log("Validating app with key "+appKey);
+        break;
+      default:
+        core.setFailed("Unsupported build type '"+buildType+"'");
+        return;
     }
 
     // Zip directory
@@ -64,8 +90,7 @@ async function run() {
     let odevioIgnore = null;
     if (fs.existsSync("./.odevioignore")) {
       odevioIgnore = fs.readFileSync("./.odevioignore", {encoding: "utf8", flag: "r"});
-    }
-    else if (core.getInput("directory") && fs.existsSync(core.getInput("directory")+"/.odevioignore")) {
+    } else if (core.getInput("directory") && fs.existsSync(core.getInput("directory")+"/.odevioignore")) {
       odevioIgnore = fs.readFileSync(core.getInput("directory")+"/.odevioignore", {encoding: "utf8", flag: "r"});
     }
     if (odevioIgnore) {
@@ -148,10 +173,12 @@ async function run() {
     console.log("Build started with key "+build.key);
 
     while(true) {
-      res = await fetch(baseUrl+"/api/v1/builds/"+build.key+"/", {headers: {
-        "Authorization": "Token "+apiKey,
-        "Accept": "application/json",
-      }});
+      res = await fetch(baseUrl+"/api/v1/builds/"+build.key+"/", {
+        headers: {
+          "Authorization": "Token "+apiKey,
+          "Accept": "application/json",
+        }
+      });
       build = await res.json();
       if (build.status_code == "succeeded") {
         console.log("Build succeeded");
@@ -168,11 +195,13 @@ async function run() {
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
     if (buildType == "ad-hoc") {
-      res = await fetch(baseUrl+"/api/v1/builds/"+build.key+"/ipa/", {headers: {
-        "Authorization": "Token "+apiKey,
-        "Accept": "application/json",
-      }});
-      ipa = await res.json();
+      res = await fetch(baseUrl+"/api/v1/builds/"+build.key+"/ipa/", {
+        headers: {
+          "Authorization": "Token "+apiKey,
+          "Accept": "application/json",
+        }
+      });
+      const ipa = await res.json();
       core.setOutput("ipa", ipa.url);
     }
   }

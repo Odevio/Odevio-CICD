@@ -12,6 +12,13 @@ steps:
       # You can replace "master" from the link to the tag of the Odevio-CICD repository that you want to use.
       wget -qO- https://raw.githubusercontent.com/Odevio/Odevio-CICD/master/script_cicd.sh | bash /dev/stdin $(ODEVIO_API_KEY) -t ad-hoc
 
+      STATUS=$?
+      # If the previous command fails, exit with the same status
+      if [ $STATUS -ne 0 ]; then
+        echo "Failed to deploy the app to Odevio"
+        exit $STATUS
+      fi
+
       # Copy the odevio_ipa_url.txt to the artifact staging directory if it exists
       if [ -f odevio_ipa_url.txt ]; then
         cp odevio_ipa_url.txt $(Build.ArtifactStagingDirectory)

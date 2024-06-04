@@ -203,7 +203,7 @@ function read_odevio_file {
 
     # Check that the variables APP_KEY and FLUTTER_VERSION are set
     if [[ -z "$APP_KEY" ]] || [[ -z "$FLUTTER_VERSION" ]]; then
-        >&2 echo -e "\nError: APP_KEY and FLUTTER_VERSION must be set in the .odevio file or given as arguments."
+        >&2 echo "Error: APP_KEY and FLUTTER_VERSION must be set in the .odevio file or given as arguments."
         exit 1
     fi
 

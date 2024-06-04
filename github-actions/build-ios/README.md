@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Odevio/Odevio-CICD/github-actions/build-ios@v1.0.2
+      - uses: Odevio/Odevio-CICD/github-actions/build-ios@v1.0.3
         with:
           api-key: ${{ secrets.ODEVIO_API_KEY }}
           app-key: 'AAA'
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Odevio/Odevio-CICD/github-actions/build-ios@v1.0.2
+      - uses: Odevio/Odevio-CICD/github-actions/build-ios@v1.0.3
         id: build
         with:
           api-key: ${{ secrets.ODEVIO_API_KEY }}

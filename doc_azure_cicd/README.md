@@ -28,7 +28,7 @@ In Azure DevOps, a pipeline is composed of [stages](https://learn.microsoft.com/
 
 ### Example of pipeline using Odevio
 
-In the file `.azure-pipelines.yml`, we give an example of what a pipeline that integrates Odevio can look like. The file is an adaptation of the starter pipeline of Azure DevOps pipeline, a minimal pipeline that you can customize to build and deploy your code and that has one implicit stage and one implicit job.
+In the file `azure-pipelines.yml`, we give an example of what a pipeline that integrates Odevio can look like. The file is an adaptation of the starter pipeline of Azure DevOps pipeline, a minimal pipeline that you can customize to build and deploy your code and that has one implicit stage and one implicit job.
 
 Here, the job is composed of only one step `deploy-odevio-job` that has for objective to run the script `script_cicd.sh`. The image used is `ubuntu-lastest`. The script is launched within the section `script`. The `script_cicd.sh` is called with the API key of Odevio that you should set as a CI/CD variable before. It will be explained in the next section. The YAML file supposes that the `script_cicd.sh` is at the root of your project. Do not hesitate to use the `workingDirectory` to specify another location.
 

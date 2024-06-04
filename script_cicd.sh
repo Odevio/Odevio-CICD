@@ -61,7 +61,7 @@ while (( "$#" )); do
                 shift 2
                 ;;
             *)
-                echo "Error: Invalid build type. Must be one of: ad-hoc, publication, validation."
+                >&2 echo "Error: Invalid build type. Must be one of: ad-hoc, publication, validation."
                 echo_help
                 exit 1
                 ;;
@@ -78,7 +78,7 @@ while (( "$#" )); do
                     shift 2
                     ;;
                 *)
-                    echo "Error: Invalid mode type. Must be one of: debug, profile, release"
+                    >&2 echo "Error: Invalid mode type. Must be one of: debug, profile, release"
                     echo_help
                     exit 1
                     ;;
@@ -87,7 +87,7 @@ while (( "$#" )); do
     -tg|--target) TARGET="$2"; shift 2 ;;
     -f|--flavor) FLAVOR="$2"; shift 2 ;;
     *)
-        echo "Error: Invalid argument $1"
+        >&2 echo "Error: Invalid argument $1"
         echo_help
         exit 1
         ;;
@@ -118,7 +118,7 @@ function check_token {
 
     STATUS_CODE_TOKEN=$(curl --silent --output /dev/null --write-out "%{http_code}" --header "Authorization: Token $1" "${BASE_URL}/api/v1/my-account/")
     if [ "$STATUS_CODE_TOKEN" -ne 200 ]; then
-        echo "Error: HTTP status code is not 200"
+        >&2 echo "Error: HTTP status code is not 200"
         echo "The token is not correct"
         exit 1
     else
@@ -145,13 +145,13 @@ function read_pubspec_file {
             fi
         done < pubspec.yaml
     else
-        echo -e "Error: Missing pubspec.yaml file.\nThis file is necessary as it contains the application version and the build number."
+        >&2 echo -e "Error: Missing pubspec.yaml file.\nThis file is necessary as it contains the application version and the build number."
         exit 1
     fi
 
     # Check that the variables APP_VERSION and BUILD_NUMBER are set
     if [[ -z "$APP_VERSION" ]] || [[ -z "$BUILD_NUMBER" ]]; then
-        echo "Error: APP_VERSION and BUILD_NUMBER were not found in the pubspec.yaml file."
+        >&2 echo "Error: APP_VERSION and BUILD_NUMBER were not found in the pubspec.yaml file."
         exit 1
     fi
 
@@ -203,7 +203,7 @@ function read_odevio_file {
 
     # Check that the variables APP_KEY and FLUTTER_VERSION are set
     if [[ -z "$APP_KEY" ]] || [[ -z "$FLUTTER_VERSION" ]]; then
-        echo -e "\nError: APP_KEY and FLUTTER_VERSION must be set in the .odevio file or given as arguments."
+        >&2 echo -e "\nError: APP_KEY and FLUTTER_VERSION must be set in the .odevio file or given as arguments."
         exit 1
     fi
 
@@ -263,7 +263,7 @@ function start_build {
 
     # Check that the required variables are set
     if [[ -z "$1" ]] || [[ -z "$APP_KEY" ]] || [[ -z "$FLUTTER_VERSION" ]] || [[ -z "$APP_VERSION" ]] || [[ -z "$BUILD_NUMBER" ]]; then
-        echo "Error: TOKEN or APP_KEY or FLUTTER_VERSION or APP_VERSION or BUILD_NUMBER is empty."
+        >&2 echo "Error: TOKEN or APP_KEY or FLUTTER_VERSION or APP_VERSION or BUILD_NUMBER is empty."
         exit 1
     fi
 
@@ -296,7 +296,7 @@ function start_build {
     RESPONSE_BODY=$(echo "$RESPONSE" | sed '$ d')
 
     if [ "$HTTP_STATUS" -ne 201 ]; then
-        echo -e "Error: HTTP status code is not 201\nThe build is not started"
+        >&2 echo -e "Error: HTTP status code is not 201\nThe build is not started"
         echo "$RESPONSE_BODY"
         exit 1
     fi
@@ -391,7 +391,7 @@ function subscribe_to_build {
         RESPONSE_BODY=$(echo "$RESPONSE" | sed '$ d')
 
         if [ "$HTTP_STATUS" -ne 200 ]; then
-            echo -e "Error: HTTP status code is not 200\nImpossible to retrieve the details of the current build"
+            >&2 echo -e "Error: HTTP status code is not 200\nImpossible to retrieve the details of the current build"
             exit 1
         fi
 
@@ -437,7 +437,7 @@ function handling_finished_build {
         RESPONSE_BODY=$(echo "$RESPONSE" | sed '$ d')
 
         if [[ "$HTTP_STATUS" -ne 200 ]]; then
-            echo -e "Error: HTTP status code is not 200\nImpossible to retrieve the IPA url of the current build"
+            >&2 echo -e "Error: HTTP status code is not 200\nImpossible to retrieve the IPA url of the current build"
             exit 1
         fi
 
